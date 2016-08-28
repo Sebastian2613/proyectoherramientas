@@ -1,0 +1,89 @@
+\documentclass[10pt,a4paper,twocolumn]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{url}
+\parindent 0mm
+\renewcommand{\refname}{Bibliografía}
+\begin{document}
+	\twocolumn[
+		\begin{@twocolumnfalse}
+		\title{Simulación de sistemas con redistribución de unidades en forma semi aleatoria}
+		\author{Joan Sebastian León Guevara - 25161271}
+		\maketitle
+		\begin{abstract}
+			A partir de la programación de un algoritmo que simulara el proceso de guerras de guerrillas en donde se redistribuye fuerza de ataque continuamente, se encuentra una relación que satisface la ley de potencias descrita en (1) entre el número de unidades $n_{s}$ con su respectiva fuerza de ataque $S$. Se halló un valor promedio para el parámetro $\alpha$  de $3423$.
+		\end{abstract}
+	\end{@twocolumnfalse}]
+	
+	\section{Teoría}
+	Los grupos insurgentes operan de la misma manera, son un sistema complejo que se organiza de manera automática a través de procesos de fragmentación (En caso de ser atacados, o que requieran huir) o procesos de coalisión (En caso que sea necesario hacer un ataque con mayor grado de impacto). Se espera que el sistema evolucione de manera que no se fragmente, ni se sufra una coalisión total, sino que alcance un estado de equilibrio en un punto entre esos estados.\\
+	
+	Para grupos grandes, dicho estado estacionario debería depender únicamente de un factor, ¿Qué tan seguido ocurren los procesos de fragmentación?. Si se define el parámetro $\nu$ como la probabilidad de fragmentarse, entonces es de esperar que $\nu$ no sea $1$ ni tampoco un número muy pequeño. \\
+	
+	Se objeta que el sistema se comporta de acuerdo a una ley de potencias $n_{s} = N *n_{1} x^{\alpha}$, de manera que al graficar el número de unidades como función de la fuerza de ataque en escala $\log$ se obtenga una recta con pendiente $\alpha$. En donde el parámetro $alpha$ debe ser función de $\nu$, es decir, $n_{s} = N *n_{1} x^{\alpha(\nu)}$. Una descripción más completa de la teoría se encuentra en [\ref{paper}].\\
+	
+	\section{Implementación}
+	Para conocer el comportamiento de dicho sistema se programó un algoritmo en c++. Inicialmente se tomó un sistema con $5$ unidades y en él se definió un arreglo \textit{Vect} que se usaba como parámetro en una función denominada \textit{inicializarfuerza} la cual asignaba a las casillas pares del arreglo el número de la unidad, y a las impares la fuerza de dicha unidad de ataque. \\
+	
+	Dado que la elección de la unidad que se puede (o no) desfragmentar se realiza de manera aleatoria, pero dependiente de su fuerza de ataque, se optó por crear otro vector \textit{Force} de tamaño $N$ el cual asignaba a cada casilla el número de la unidad a la cual pertenecía esa fuerza de ataque. Es decir, si se tenía $N=5$ y una distribución de fuerza como la siguiente: \\
+	
+	\begin{table}[h]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		Unidad& Fuerza de ataque \\ \hline
+		1&3\\ \hline
+		2&0\\ \hline
+		3&1\\ \hline
+		4&0\\ \hline
+		5&1\\ \hline
+	\end{tabular}	
+	\end{table}
+	
+	
+	El vector \textit{Force} correspondiente sería $F[5]=\{1,1,1,3,5\}$. Este proceso se realizaba con una función llamada \textit{vectorfuerza} para cada iteración (Pues la fuerza se redistribuye continuamente). Se usaría despues la función srand(time(NULL)) para tomar una casilla aleatoria de este vector, esta será el número de la unidad de ataque elegida. \\
+	
+	Posteriormente definimos una constante $P$ para la cual el valor $\frac{1}{P}= \nu$  será la probabilidad que tiene la unidad de fragmentarse. Se elige un número aleatorio con \textit{rand()} y si este resulta ser divisor de P (residuo $0$) entonces la unidad se fragmentará. Si no ocurre eso, la unidad $i$ se unirá a otra unidad $j$ elegida de manera aleatoria haciendo uso del mismo proceso con el vector \textit{Force}. Ambos casos se tratan con funciones \textit{Union}  y \textit{Desfragmentar} respectivamente\\
+	
+	Para el caso de fragmentación el algoritmo evita el caso en el que la unidad de ataque posee una fuerza de ataque de $1$, para los demás casos reparte su fuerza entre las casillas impares del vector \textit{Vect} que tengan $0$ es decir que no tengan fuerza de ataque.\\
+	
+	En el caso de la unión se tiene en cuenta que no se elija a la misma unidad en estos procesos aleatorios, y se procede a dejar la fuerza de ataque de la unidad $j$ en $0$ y sumar dicha cantidad a la fuerza de ataque de la unidad $i$.\\
+	
+	Con un \textit{printf} se sacaron los datos correspondientes a la fuerza y al número de unidades con esa fuerza, al correr el programa por la terminal se enviaban estos a un archivo .csv para después ser graficados y ajustados por gnuplot y qtiplot. Sin embargo el proceso resultaba muy tedioso y los resultados obtenidos no eran muy confiables pues no era posible establecer con claridad hasta qué dato se debía tomar para realizar el ajuste.  \\
+	
+	Tras hablar con un compañero de la clase se optó por añadir al programa una función que calculara la progresión lineal del logaritmo base $10$ de la fuerza (Coordenada X) junto con el logaritmo base $10$ del número de unidades (Coordenada Y). Este algoritmo se encuentra en [\ref{linear}]. A partir de los datos obtenidos y de un histograma de pendientes se calculó y evaluó el punto adecuado para truncar el ajuste. Por último se añadió el loop para el número de pasos que se iban a simular \textit{time}.\\
+	
+	
+	\section{Resultados - Análisis}
+	Se usaron distintas configuraciones con el fin de probar los resultados obtenidos por la simulación, comenzando con la prueba de los casos base, y pasando después a otros estados.
+	\subsection{Caso: $\nu =1$} 
+	Es decir, un proceso de desfragmentación a cada instante de tiempo.Se usó $N=100000$ con un tiempo de $ 2 \times 10^{6}$ iteraciones. Dado que en el algoritmo la condición inicial es que cada unidad $n$, tenga una fuerza de ataque igual a 1 $S_{n}=1$(Es decir que esté totalmente desfragmentada) el resultado es el esperado, nada cambió. Con el fin de hacerlo más interesante se cambió la semilla inicial, dándole a las casillas pares que contenían la fuerza, $2$ unidades de fuerza y a las impares $0$. Después de $\approx 114 \times 10 ^{4}$ iteraciones el sistema alcanzó el estado de equilibrio y se obtiene un solo punto con coordenadas $(1,1 \times 10 ^{5})$. \\
+	
+	\subsection{Caso: $\nu =0$} 
+	El otro extremo es un sistema que nunca se fragmenta. Se usaron los mismos parámetros iniciales que en el caso anterior, y se obtuvo como era de esperarse un único punto con coordenadas $(1 \times 10 ^{5},1)$ lo cual se obtiene después de $\approx 69 \times 10 ^{4}$ iteraciones.\\
+	
+	\subsection{Caso: $\nu =100$}
+		\subsubsection{	$Unidades: 100 \times 10 ^{3}, tiempo = 3 \times 10^{6}$ }
+
+	Se tarda en compilar alrededor de $67$ minutos en un portatil \textit{SONY VAIO VGN-NR110FH} con $2Gb$ de memoria RAM y procesador Intel® Celeron(R) CPU $530 @ 1.73GHz $
+	
+	\subsubsection{	$Unidades: 150 \times 10 ^{3}, tiempo = 3 \times 10^{6}$ }
+	Se alcanza un estado estacionario ... se debe a que únicamente aparecen unidades con una fuerza de ataque muy grande esporádicamente, pero ellas no tienen mucho peso en el cálculo del coeficiente.
+	
+	
+	\section{Conclusiones}
+	\begin{thebibliography}{1}
+		\bibitem{Paper}\label{paper}
+	
+		Neil F. Johnson , Mike Spagat , Jorge A. Restrepo  , Oscar Becerra , Juan Camilo	Bohórquez , Nicolas Suárez , Elvira Maria Restrepo , Roberto Zarama.(2005). Universal patterns underlying ongoing wars and terrorism.
+
+		\bibitem{Repositorio}\label{guardar}
+		Repositorio del proyecto: \url{https://github.com/Sebastian2613/proyectoherramientas}
+		
+		\bibitem{lineal}\label{linear}
+		\url{http://www.codecogs.com/library/maths/approximation/regression/linear.php}
+	\end{thebibliography}
+\end{document}
