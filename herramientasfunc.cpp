@@ -4,13 +4,13 @@
 #include <time.h>
 #include <stdlib.h>
 using namespace std;
-const int N=100000;
-long int TIME=3000000;
-int P=100; //la probabilidad de fragmentacion es 1/P
+int const N=300000;
+int const TIME=5000000;
+int P=1000; //la probabilidad de fragmentacion es 1/P
 //DECLARACION DE TODAS LAS FUNCIONES
 void inicializarfuerzas(int *);
 void vectorfuerza(int V[],int *);
-void Desfragmentar(int *,int, int);
+void Desfragmentar(int *,int);
 void Union (int *,int,int);
 void Sacardatos(int *,int V[]);
 double pendiente(int n, double *,double *);
@@ -123,17 +123,21 @@ double Linear_once(int n, double *x, double *y, double a )
 int main()
 {
 srand(time(NULL));
-int Vect[2*N]={0},Force[N]={0};
-//VARIABLES PARA HISTOGRAMA
-int size=301;
-double m[size];
-/////////////////////////
-inicializarfuerzas(Vect);
-/*for(int i=0;i<2*N;i++)  PRINTF DE RECTIFICACION
+int *Vect = new int[N];
+int *Force = new int[N];
+/*for(int i=0;i<2*N;i++) // PRINTF DE RECTIFICACION
 		{
 			printf(" Elemento [%d] = %d \n",i,Vect[i]);
-		}	*/
-for(int time=0;time<TIME;time++)
+		}*/
+//VARIABLES PARA HISTOGRAMA
+int size = TIME/10000 +1;
+double *m=new double[size];
+double *m2=new double[size];
+double *m3=new double[size];
+/////////////////////////
+inicializarfuerzas(Vect);
+
+for(int time=0;time<=TIME;time++)
 {
 	vectorfuerza(Vect,Force);
 	/*for(int i=0;i<N;i++)  PRINTF DE RECTIFICACION
@@ -144,10 +148,10 @@ for(int time=0;time<TIME;time++)
 	int unit =rand()%N; //NUMERO ENTRE 0 Y N-1
 	int elegida = Force[unit]; //LA UNIDAD ELEGIDA
 	//printf("Unit FUERA IF = %d ... %d \n",elegida,unit); PRINTF DE RECTIFICACION
-	int frag = rand()%P,count=0; //RODANDO PARA VER SI SE VA A DESFRAGMENTAR O NO
+	int frag = rand()%P; //RODANDO PARA VER SI SE VA A DESFRAGMENTAR O NO
 		if(frag==0) // DEBO CAMBIARLO A DIFERENTE
 		{	
-				Desfragmentar(Vect,elegida,count);
+				Desfragmentar(Vect,elegida);
 			 //PASAMOS POR REFERENCIA PARA REDISTRIBUIR
 		}
 		else //SI SE VA A UNIR
@@ -174,49 +178,74 @@ for(int time=0;time<TIME;time++)
 		{
 		//	printf(" Unidad [%d] \t Fuerza [%d] \n",Vect[2*i],Vect[2*i+1]);
 		}*/
+
+
 if(time%10000==0)
-	{
+	{   double *Y,*X;
 		int Data[N+1]={0},contador2=0;
 		int v=time/10000;
-		double Y[N] = {0.0},X[N]={0.0};
-		
-		
+		Y= new double[N]();
+		X= new double[N]();
 		Sacardatos(Data,Vect);
-		cout<<"TIME = "<<time<<endl;
+		
 		for(int i=1;i<=N;i++)
 		{
 			if(Data[i]!=0) //número de unidades con fuerza i
 			{
 			//printf("%d,%d \n",i,Data[i]);
+			//X = (double *)calloc(contador2, sizeof(double));
+			//Y = (double *)calloc(contador2, sizeof(double));
 			Y[contador2]=Data[i];
-			X[contador2]=i;
+			X[contador2]=i; //fuerza i
 			contador2=contador2+1;
 			}
 		}
 		double S[contador2]={0},n_s[contador2]={0};
 		//VA LA PARTE DE COGER EL VECTOR Y CREAR LOS DATOS QUE NECESITE EN ESCALA LOG
+		//S = (double *)calloc(contador2, sizeof(double));
+		//n_s = (double *)calloc(contador2, sizeof(double));
+		/*for(int i=1;i<=contador2;i++)
+			{
+		printf("i= %d \t\t X = %lf \t\t Y = %lf \n",i,X[i-1],Y[i-1]);
+			}*/
 		for(int i=1;i<=contador2;i++)
 			{
+			printf("i= %d \t\t X = %lf \t\t Y = %lf \n",i,X[i-1],Y[i-1]);
 			S[i-1]=log10(X[i-1]);
 			n_s[i-1]=log10(Y[i-1]); //fuerza 1 la mando a contador 0
 			}
-		int truncamiento=80; //ESTO ES PARA PARAR EL AJUSTE
-		if(contador2>=0) //CAMBIAR ESTO
-		{
+		int truncamiento=30,truncamiento2=5; //ESTO ES PARA PARAR EL AJUSTE
+		/*if(contador2<=80) //CAMBIAR ESTO
+		{*/cout<<"TIME = "<<time<<endl;
 			m[v]=pendiente(contador2,S,n_s);
 			printf("La pendiente es %lf \n",m[v]);
-			printf("el contador es %d \n\n\n",contador2);
-		}
-		else
-		{
-		m[v]=pendiente(truncamiento,S,n_s);
-		printf("La pendiente es %lf \n",m[v]);
-		}
+			printf("el contador es %d \n",contador2);
+			m2[v]=pendiente(truncamiento,S,n_s);
+			printf("La pendiente truncamiento es %lf \n",m2[v]);
+			m3[v]=pendiente(truncamiento2,S,n_s);
+			printf("La pendiente truncamiento2 es %lf \n\n\n",m3[v]);
+			
+		/*if(time%750000==0)	
+			{
+			printf("Safe space for data every 750k \n");	
+					for(int i=1;i<=N;i++)
+					{
+						if(Data[i]!=0)
+						{
+						printf("%d,%d \n",i,Data[i]);
+						}
+					}
+			printf("\n\n\n");
+			}*/
+	
+		
 	} //FIN DEL IF PARA IMPRIMIR VERIFICACION
 
+	/*free (S);
+	free (n_s);	*/
 } //FIN DEL FOR TIME
 	
-int Data[N+1]={0};
+int Data[N]={0};
 	Sacardatos(Data,Vect);
 	cout<<"iteracion N = "<< TIME<<endl;
 		for(int i=1;i<=N;i++)
@@ -226,9 +255,25 @@ int Data[N+1]={0};
 			printf("%d,%d \n",i,Data[i]);
 			}
 		}
+		/*SI SE DESEA QUE SOLO SALGAN LOS DATOS FINALES SE PUEDEN 
+		COLOCAR EN COMENTARIO TODOS LOS 'FOR' PARA QUE AL EJECUTAR 
+		DESDE LA TERMINAL SE PUEDAN GRAFICAR DIRECTAMENTE EN GNUPLOT CON LOS CÓDIGOS:
+		* g++ nombre.cpp && ./a.out
+		* nombre -> archivodatos.cvs (PUES LOS DATOS ESTARAN SEPARADOS POR COMAS
+		* Al estar en gnuplot se debe colocar set fileseparator "," para que lea nuestro archivo cvs
+		*/
 		for(int i=1;i<=size;i++)
 		{
 		printf("%d,%lf \n",10000*i,m[i]);
+		}
+		cout<<"Las pendientes con truncamiento son "<<endl;
+		for(int i=1;i<=size;i++)
+		{
+		printf("%d,%lf \n",10000*i,m2[i]);
+		}
+		for(int i=1;i<=size;i++)
+		{
+		printf("%d,%lf \n",10000*i,m3[i]);
 		}
 return 0;
 }
@@ -238,15 +283,9 @@ void inicializarfuerzas(int Vect[])
 {
 	for (int i=0;i<N;i++)
 	{
-		if(i%2==0)
-				{
-				Vect[2*i+1] = 2;
-				}
-		else
-		{
-			Vect[2*i+1] = 0;
-			} //ACÁ PODEMOS COLOCAR LA SEMILLA QUE QUERAMOS
-	Vect[2*i]=i+1;
+	
+	Vect[i] = 1;
+	 //ACÁ PODEMOS COLOCAR LA SEMILLA QUE QUERAMOS
 	}
 	
 }
@@ -256,16 +295,15 @@ void vectorfuerza(int Vect[],int Force[])
 int contador=0;
 for(int i=0;i<N;++i)
 	{
-		int f=Vect[2*i+1];
-		if(f!=0)
+		if(Vect[i]!=0)
 		{
 			do
 			{
-			contador=contador+1;
 			//printf("CONTADOR = %d \n",contador);
-			Force[contador-1]=i+1;
+			Force[contador]=i+1;
+			contador=contador+1;
 			}
-			while(contador<f);
+			while(contador<Vect[i]);
 		}
 			
 	}
@@ -273,29 +311,29 @@ for(int i=0;i<N;++i)
 }
 ///////////////////////////////////////////////////////
 
-void Desfragmentar(int Vect[], int elegida, int count)
+void Desfragmentar(int Vect[], int elegida)
 {
-int i=0;
-			if(Vect[2*elegida-1]!=1) //Evitando crear mas fuerza
+int i=0,count=0;
+
+			if(Vect[elegida-1]!=1) //Evitando crear mas fuerza
 			{
 			
-			while(count<Vect[2*elegida-1])
+			while(count<Vect[elegida-1])
 				{
-					if(Vect[2*i+1]==0) //Vamos a tomar cada uno de los espacios de fuerza vacios 
+					if(Vect[i]==0) //Vamos a tomar cada uno de los espacios de fuerza vacios 
 									//y llenarlos hasta redistribuir la fuerza
 					{
 				
-						Vect[2*i+1]	=1; 
+						Vect[i]	=1; 
 						count=count+1;
 					}
 					i=i+1;	
 				}
 			
-			Vect[2*elegida-1] =1;//Tome la unidad elegida y set 1.	
+			Vect[elegida-1] =1;//Tome la unidad elegida y set 1.	
 					 				
 			}
-			else
-			{return;}
+			
 			
 }
 ////////////////////////////////////////////////////////
@@ -305,9 +343,10 @@ void Union (int Vect[],int elegida, int elegida2)
 {
 	if(elegida2!=elegida)
 	{
-	Vect[2*elegida-1] = Vect[2*elegida -1]+Vect[2*elegida2 -1]; //UNIR FUERZAS
-	Vect[2*elegida2-1] = 0; //DESAPARECER GRUPO2
+	Vect[elegida-1] = Vect[elegida -1]+Vect[elegida2 -1]; //UNIR FUERZAS
+	Vect[elegida2-1] = 0; //DESAPARECER GRUPO2
 	}
+
 }
 
 void Sacardatos(int Data [], int Vect[])
@@ -315,7 +354,7 @@ void Sacardatos(int Data [], int Vect[])
 	//CADA ENTRADA DE DATA SERA EL NUMERO DE UNIDADES CON ESA FUERZA.
 	for (int i=0;i<N;i++)
 	{
-		int k=Vect[2*i+1];
+		int k=Vect[i];
 		Data[k]=Data[k]+1;
 	}
 }
