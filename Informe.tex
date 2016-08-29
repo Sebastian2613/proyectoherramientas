@@ -5,8 +5,12 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage{url}
+
+\usepackage{float}
 \parindent 0mm
 \renewcommand{\refname}{Bibliografía}
+\renewcommand{\figurename}{Gráfica}
+
 \begin{document}
 	\twocolumn[
 		\begin{@twocolumnfalse}
@@ -14,7 +18,7 @@
 		\author{Joan Sebastian León Guevara - 25161271}
 		\maketitle
 		\begin{abstract}
-			A partir de la programación de un algoritmo que simulara el proceso de guerras de guerrillas en donde se redistribuye fuerza de ataque continuamente, se encuentra una relación que satisface la ley de potencias descrita en (1) entre el número de unidades $n_{s}$ con su respectiva fuerza de ataque $S$. Se halló un valor promedio para el parámetro $\alpha$  de $3423$.
+			A partir de la programación de un algoritmo que simuló el proceso de guerras de guerrillas en donde se redistribuye fuerza de ataque continuamente, se encuentra una relación que satisface la ley de potencias descrita en (1) entre el número de unidades $n_{s}$ con su respectiva fuerza de ataque $S$. Se determina el rango de validez para el cual el coeficiente $\alpha$ propuesto se ajusta a los resultados de la simulación, pues se encuentran valores en un amplio rango $-3.087$ hasta $-1.655$. También se evidencia la relación entre el parámetro $\nu$ y la precisión del ajuste.
 		\end{abstract}
 	\end{@twocolumnfalse}]
 	
@@ -26,7 +30,7 @@
 	Se objeta que el sistema se comporta de acuerdo a una ley de potencias $n_{s} = N *n_{1} x^{\alpha}$, de manera que al graficar el número de unidades como función de la fuerza de ataque en escala $\log$ se obtenga una recta con pendiente $\alpha$. En donde el parámetro $alpha$ debe ser función de $\nu$, es decir, $n_{s} = N *n_{1} x^{\alpha(\nu)}$. Una descripción más completa de la teoría se encuentra en [\ref{paper}].\\
 	
 	\section{Implementación}
-	Para conocer el comportamiento de dicho sistema se programó un algoritmo en c++. Inicialmente se tomó un sistema con $5$ unidades y en él se definió un arreglo \textit{Vect} que se usaba como parámetro en una función denominada \textit{inicializarfuerza} la cual asignaba a las casillas pares del arreglo el número de la unidad, y a las impares la fuerza de dicha unidad de ataque. \\
+	Para conocer el comportamiento de dicho sistema se programó un algoritmo en c++. Inicialmente se tomó un sistema con $5$ unidades y en él se definió un arreglo \textit{Vect} que se usaba como parámetro en una función denominada \textit{inicializarfuerza} la cual asignaba a cada casilla $i$ la fuerza de la unidad de ataque $i+1$. \\
 	
 	Dado que la elección de la unidad que se puede (o no) desfragmentar se realiza de manera aleatoria, pero dependiente de su fuerza de ataque, se optó por crear otro vector \textit{Force} de tamaño $N$ el cual asignaba a cada casilla el número de la unidad a la cual pertenecía esa fuerza de ataque. Es decir, si se tenía $N=5$ y una distribución de fuerza como la siguiente: \\
 	
@@ -48,33 +52,129 @@
 	
 	Posteriormente definimos una constante $P$ para la cual el valor $\frac{1}{P}= \nu$  será la probabilidad que tiene la unidad de fragmentarse. Se elige un número aleatorio con \textit{rand()} y si este resulta ser divisor de P (residuo $0$) entonces la unidad se fragmentará. Si no ocurre eso, la unidad $i$ se unirá a otra unidad $j$ elegida de manera aleatoria haciendo uso del mismo proceso con el vector \textit{Force}. Ambos casos se tratan con funciones \textit{Union}  y \textit{Desfragmentar} respectivamente\\
 	
-	Para el caso de fragmentación el algoritmo evita el caso en el que la unidad de ataque posee una fuerza de ataque de $1$, para los demás casos reparte su fuerza entre las casillas impares del vector \textit{Vect} que tengan $0$ es decir que no tengan fuerza de ataque.\\
+	Para el caso de fragmentación el algoritmo evita el caso en el que la unidad de ataque posee una fuerza de ataque de $1$, para los demás casos reparte su fuerza entre las casillas  del vector \textit{Vect} que tengan $0$ es decir que no tengan fuerza de ataque.\\
 	
 	En el caso de la unión se tiene en cuenta que no se elija a la misma unidad en estos procesos aleatorios, y se procede a dejar la fuerza de ataque de la unidad $j$ en $0$ y sumar dicha cantidad a la fuerza de ataque de la unidad $i$.\\
 	
 	Con un \textit{printf} se sacaron los datos correspondientes a la fuerza y al número de unidades con esa fuerza, al correr el programa por la terminal se enviaban estos a un archivo .csv para después ser graficados y ajustados por gnuplot y qtiplot. Sin embargo el proceso resultaba muy tedioso y los resultados obtenidos no eran muy confiables pues no era posible establecer con claridad hasta qué dato se debía tomar para realizar el ajuste.  \\
 	
-	Tras hablar con un compañero de la clase se optó por añadir al programa una función que calculara la progresión lineal del logaritmo base $10$ de la fuerza (Coordenada X) junto con el logaritmo base $10$ del número de unidades (Coordenada Y). Este algoritmo se encuentra en [\ref{linear}]. A partir de los datos obtenidos y de un histograma de pendientes se calculó y evaluó el punto adecuado para truncar el ajuste. Por último se añadió el loop para el número de pasos que se iban a simular \textit{time}.\\
+	Tras hablar con un compañero de la clase se optó por añadir al programa una función que calculara la progresión lineal del logaritmo base $10$ de la fuerza (Coordenada X) junto con el logaritmo base $10$ del número de unidades (Coordenada Y). Este algoritmo se encuentra en [\ref{linear}]. A partir de los datos obtenidos y de un histograma de pendientes se calculó y evaluó el punto adecuado para terminar el loop de iteraciones. Por último se añadió dicho loop en la variable \textit{time}.\\
 	
 	
 	\section{Resultados - Análisis}
-	Se usaron distintas configuraciones con el fin de probar los resultados obtenidos por la simulación, comenzando con la prueba de los casos base, y pasando después a otros estados.
+	Se usaron distintas configuraciones con el fin de probar los resultados obtenidos por la simulación, comenzando con la prueba de los casos base, y pasando después a otros estados. Para obtener el tiempo en el cual se llega a un estado estacionario se realizó un histograma con las pendientes obtenidas por el programa cada $10000$ iteraciones:\\
+	
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.5]{Historenew.pdf}
+	\caption{Histograma del valor de las pendientes para simulación con $2 \times 10^{5}$ unidades, durante $7 \times 10^{6}$ iteraciones}
+\end{figure}
+
+El programa tarda en compilar esta configuración alrededor de $2$ y $40$ minutos en un portatil \textit{SONY VAIO VGN-NR110FH} con $2Gb$ de memoria RAM y procesador Intel® Celeron(R) CPU $530 @ 1.73GHz $. Para estas condiciones, un promedio de los datos, muestra que a partir de $x=0.26 \approx 1.8 \times 10 ^{6}$ iteraciones se alcanza el estado de equilibrio, para configuraciones con menos unidades (como las que se usarán para el análisis) dicho tiempo se reduce y será suficiente correr el programa por $1.2 \times 10 ^{5}$ iteraciones.\\ 
+
+Las pendientes obtenidas en cada caso fueron:\\
+\begin{align*}
+m_{Truncamiento30} &= -1.80 \\
+m_{Total} &= -0.84 
+\end{align*}
+
+
+El proceso de calcular la pendiente se ve muy afectado con la elección del punto donde se truncan los datos, debido a que tenemos un número finito de unidades, y comienzan formarse esporádicamente (Aparecen 1 vez) unidades muy grandes que afectan el resultado. Esto se puede observar más claramente en la gráfica:\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{Graph1.pdf}
+	\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $2 \times 10^{5}$ unidades, durante $7 \times 10^{6}$ iteraciones, $\mu=100$}
+\end{figure}
+
+
+El paso a seguir es hallar qué valor $x_{min}$ es el adecuado para detener el cálculo de la pendiente, para eso hacemos uso del método empleado en [\ref{paper}] página $42$. Tomamos un número de posibles valores $x_{min}^{k}$, en nuestro caso se eligió $k=30$ y los $x$ iban desde $x_{min}^{0}=2$ hasta $x_{min}^{30}=62$. Se evaluó el valor de la expresión para los distintos grupos de puntos que nos arrojaba el programa que fueron menores a un $x_{min}^{k}$ dado, y con un script de mathematica se halló el valor de la zeta de Riemann. Con los $30$ valores que se tienen se usa una función en excel que nos de el valor de la desviación por medio de la función (KS). Por último se obtiene un $x_{min}$ que produzca la menor desviación respecto al parámetro $\alpha$. Este proceso se repite para cada uno de los casos que se evaluan a continuación:  \\ 
+
+
 	\subsection{Caso: $\nu =1$} 
-	Es decir, un proceso de desfragmentación a cada instante de tiempo.Se usó $N=100000$ con un tiempo de $ 2 \times 10^{6}$ iteraciones. Dado que en el algoritmo la condición inicial es que cada unidad $n$, tenga una fuerza de ataque igual a 1 $S_{n}=1$(Es decir que esté totalmente desfragmentada) el resultado es el esperado, nada cambió. Con el fin de hacerlo más interesante se cambió la semilla inicial, dándole a las casillas pares que contenían la fuerza, $2$ unidades de fuerza y a las impares $0$. Después de $\approx 114 \times 10 ^{4}$ iteraciones el sistema alcanzó el estado de equilibrio y se obtiene un solo punto con coordenadas $(1,1 \times 10 ^{5})$. \\
+	Es decir, un proceso de desfragmentación a cada instante de tiempo. Se usó $N=100000$ con un tiempo de $ 2 \times 10^{6}$ iteraciones. Dado que en el algoritmo la condición inicial es que cada unidad $n$, tenga una fuerza de ataque igual a 1 $S_{n}=1$(Es decir que esté totalmente desfragmentada) el resultado es el esperado, nada cambió. Con el fin de hacerlo más interesante se cambió la semilla inicial, dándole a las casillas pares que contenían la fuerza, $2$ unidades de fuerza y a las impares $0$. Después de $\approx 114 \times 10 ^{4}$ iteraciones el sistema alcanzó el estado de equilibrio y se obtiene un solo punto con coordenadas $(1,1 \times 10 ^{5})$. \\
 	
 	\subsection{Caso: $\nu =0$} 
-	El otro extremo es un sistema que nunca se fragmenta. Se usaron los mismos parámetros iniciales que en el caso anterior, y se obtuvo como era de esperarse un único punto con coordenadas $(1 \times 10 ^{5},1)$ lo cual se obtiene después de $\approx 69 \times 10 ^{4}$ iteraciones.\\
+	El otro extremo es un sistema que nunca se fragmenta. Se usaron los mismos parámetros iniciales que en el caso anterior, y se obtuvo como era de esperarse un único punto con coordenadas $(1 \times 10 ^{5},1)$ lo cual se obtiene después de $\approx 69 \times 10 ^{4}$ iteraciones.
+	\subsection{Caso: $\mu =1000 = \dfrac{1}{\nu}$} 
+		\subsubsection{$1 \times 10^{5} $ unidades, tiempo de $1.2 \times 10 ^{6}$ }El tiempo de compilación fue alrededor en $40$ minutos,para este valor de $\nu$ se realizaron $3$ distintas simulaciones pues dicho valor es el que peor ajusta los datos. Se cambiaron parámetros como el tiempo, las unidades, con el fin de ver la dependencia de ellos.
+	\begin{figure}[h]
+		
+		\includegraphics[scale=0.5]{mu1000.pdf}
+		\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $1 \times 10^{5}$ unidades, durante $1.2 \times 10^{6}$ iteraciones}
+	\end{figure}
+	Las pendientes son:
+\begin{align*}
+m_{Truncamiento} &= -1.756\\
+m_{Total} &= -0.983
+\end{align*}
+	\subsubsection{$5 \times 10^{4} $ unidades, tiempo de $3 \times 10 ^{6}$ }
+	\begin{figure}[H]
+		
+		\includegraphics[scale=0.5]{mu1000_50k.pdf}
+		\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $5 \times 10^{4}$ unidades, durante $3 \times 10^{6}$ iteraciones}
+	\end{figure}
+		Las pendientes son:
+		\begin{align*}
+		m_{Truncamiento} &= -1.655\\
+		m_{Total} &= -0.934
+		\end{align*}
+	\subsubsection{$30 \times 10^{4} $ unidades, tiempo de $5 \times 10 ^{6}$ }
+	\begin{figure}[H]
+		
+		\includegraphics[scale=0.5]{mu1k3.pdf}
+		\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $3 \times 10^{5}$ unidades, durante $5 \times 10^{6}$ iteraciones}
+	\end{figure}
+	Las pendientes son:
+	\begin{align*}
+	m_{X_{min}} &= -2.461\\
+	m_{Total} &= -0.613
+	\end{align*}
+	En cada uno de los casos simulados se observa el gran desbalance producido por un número finito de unidades (Independiente de su número), pero este tiende a incrementarse cuando consideramos grupos más grandes pues la falta de fragmentación produce grupos más grandes.\\
 	
-	\subsection{Caso: $\nu =100$}
-		\subsubsection{	$Unidades: 100 \times 10 ^{3}, tiempo = 3 \times 10^{6}$ }
+	\subsection{Caso: $\mu =100 = \dfrac{1}{\nu}$}
+	Se tarda en compilar alrededor de $33$ minutos en un portatil \textit{SONY VAIO VGN-NR110FH} con $2Gb$ de memoria RAM y procesador Intel® Celeron(R) CPU $530 @ 1.73GHz $. El ajuste realizado a partir de $x_{min}$ resulta tener una muy buena aproximación.
+		\begin{figure}[H]
+			\centering
+			\includegraphics[scale=0.5]{mu100_100k.pdf}
+			\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $1 \times 10^{5}$ unidades, durante $1.2 \times 10^{6}$ iteraciones}
+		\end{figure}
+		Las pendientes son:
+			\begin{align*}
+			m_{Truncamiento} &= -1.831\\
+	 		m_{X_{min}} &= -2.286\\
+			m_{Total} &= -0.816
+			\end{align*}
 
-	Se tarda en compilar alrededor de $67$ minutos en un portatil \textit{SONY VAIO VGN-NR110FH} con $2Gb$ de memoria RAM y procesador Intel® Celeron(R) CPU $530 @ 1.73GHz $
-	
-	\subsubsection{	$Unidades: 150 \times 10 ^{3}, tiempo = 3 \times 10^{6}$ }
-	Se alcanza un estado estacionario ... se debe a que únicamente aparecen unidades con una fuerza de ataque muy grande esporádicamente, pero ellas no tienen mucho peso en el cálculo del coeficiente.
-	
+	\subsection{ Caso: $\mu =10 = \dfrac{1}{\nu}$} 
+	De la gráfica se observa que ambos ajustes poseen valores de $\alpha$ muy cercanos, y que en general pasan por la gran mayoría de puntos sin mucha desviación.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.5]{mu10_new.pdf}
+		\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $1 \times 10^{5}$ unidades, durante $1.2 \times 10^{6}$ iteraciones}
+	\end{figure}
+	\begin{align*}
+	m_{X_{min}} &= -2.103\\
+	m_{Total} &= -1.861
+	\end{align*}
+	\subsection{Caso: $\mu =3 = \dfrac{1}{\nu}$}
+	El tiempo de compilación fue de $71$ minutos. En el gráfico se observa claramente el punto que corresponde a $x_{min}$. Es la mejor distribución que da en gran parte debido a que los procesos de fragmentación ocurren más seguido y no se acumulan puntos al final de la gráfica.
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.5]{mu3.pdf}
+		\caption{Distribución del número de unidades $\frac{n_{s}}{n_{1}}$ como función de su fuerza de ataque $S$ para $2 \times 10^{5}$ unidades, durante $1.2 \times 10^{6}$ iteraciones}
+	\end{figure}
+	\begin{align*}
+	m_{X_{min}} &= -2.241\\
+	m_{Total} &= -3.087
+	\end{align*}
 	
 	\section{Conclusiones}
+	La relación entre el parámetro $\nu$ y el valor de $x_{min}$ para el truncamiento de datos es bastante interesante. Cuando se tienen configuraciones en las cuales la probabilidad de fragmentarse es mayor ($\nu$ más grande) incrementa el rango de validez de la ley de potencias para valores más grandes de $S$. Para casos en donde $\nu$ es muy pequeño obtenemos valores de $x_{min}$ también pequeños. Esto se debe a que menos unidades suufren fragmentación.\\
+	
+	Sistemas con una evolución temporal similar a esta son descritos de manera adecuada por medio de leyes de potencias, para este sistema el exponente tuvo valores entre $-3.087$ y $-1.655$ . \\
+	
+	Variar condiciones como el número total de unidades afecta el comportamiento tipo ley de potencias en sistemas con un valor de $\nu$ muy pequeño. Los resultados obtenidos para el caso $3.6$ concuerdan con el modelo presentado en [\ref{paper}], para los casos $3.3-3.5$ se encuentra resultados similares a los calculados en [\ref{paper}] (página $49$) con datos reales de los procesos de conflicto armado en Colombia e iraq.
 	\begin{thebibliography}{1}
 		\bibitem{Paper}\label{paper}
 	
@@ -85,5 +185,7 @@
 		
 		\bibitem{lineal}\label{linear}
 		\url{http://www.codecogs.com/library/maths/approximation/regression/linear.php}
+		\bibitem{Datos}\label{Data}
+		Sheets google drive con datos de  simulaciones mostradas: \url{https://docs.google.com/a/unal.edu.co/spreadsheets/d/1WRqyh6IWMiKYsF9F2KSfGrVLyRlEqou9oGqmlzCVHm8}
 	\end{thebibliography}
 \end{document}
